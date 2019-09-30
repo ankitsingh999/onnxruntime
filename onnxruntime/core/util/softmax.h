@@ -18,7 +18,7 @@ limitations under the License.
 
 // copied from tensorflow/core/kernels/softmax_op.cc
 template <bool log, typename Device, typename T1, typename T2>
-void ComputeSoftMax(const Device& d, typename T1& logits, typename T2& softmax, int batch_size, int num_classes) {
+void ComputeSoftMax(const Device& d, T1& logits, T2& softmax, int batch_size, int num_classes) {
   const int kBatchDim = 0;
   const int kClassDim = 1;
 
@@ -60,22 +60,23 @@ void ComputeSoftMax(const Device& d, typename T1& logits, typename T2& softmax, 
 }
 
 // this function skips zero values (since exp(0) is non zero)
-static inline void ComputeSoftmaxZero(float* values, size_t values_len, float* out_p) {
-  std::vector<float> newscores(values_len);
+template <typename T>
+void ComputeSoftmaxZero(T* values, size_t values_len, T* out_p) {
+  std::vector<T> newscores(values_len);
   // compute exp with negative number to be numerically stable
-  float v_max = -std::numeric_limits<float>::max();
+  T v_max = -std::numeric_limits<T>::max();
   for (size_t i = 0; i != values_len; ++i) {
     auto value = values[i];
     if (value > v_max)
       v_max = value;
   }
 
-  float exp_neg_v_max = std::exp(-v_max);
-  float this_sum = 0.f;
+  T exp_neg_v_max = std::exp(-v_max);
+  T this_sum = 0.f;
   for (size_t i = 0; i != values_len; ++i) {
     auto value = values[i];
     if (value > 0.0000001f || value < -0.0000001f) {
-      float val2 = std::exp(value - v_max);
+      T val2 = std::exp(value - v_max);
       this_sum += val2;
       newscores[i] = val2;
     } else {
@@ -87,19 +88,20 @@ static inline void ComputeSoftmaxZero(float* values, size_t values_len, float* o
   }
 }
 
-static inline void ComputeSoftmax(float* values, size_t values_len, float* out_p) {
-  std::vector<float> newscores(values_len);
+template <typename T>
+void ComputeSoftmax(T* values, size_t values_len, T* out_p) {
+  std::vector<T> newscores(values_len);
   // compute exp with negative number to be numerically stable
-  float v_max = -std::numeric_limits<float>::max();
+  T v_max = -std::numeric_limits<T>::max();
   for (size_t i = 0; i != values_len; ++i) {
     auto value = values[i];
     if (value > v_max)
       v_max = value;
   }
-  float this_sum = 0.f;
+  T this_sum = 0.f;
   for (size_t i = 0; i != values_len; ++i) {
     auto value = values[i];
-    float val2 = std::exp(value - v_max);
+    T val2 = std::exp(value - v_max);
     this_sum += val2;
     newscores[i] = val2;
   }
