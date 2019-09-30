@@ -19,10 +19,8 @@ limitations under the License.
 // copied from tensorflow/core/kernels/softmax_op.cc
 template <bool log, typename Device, typename T1, typename T2>
 void ComputeSoftMax(const Device& d, T1& logits, T2& softmax, int batch_size, int num_classes) {
-  const int kBatchDim = 0;
   const int kClassDim = 1;
 
-  // const int batch_size = (int)logits.dimension(kBatchDim);
   // const int num_classes = (int)logits.dimension(kClassDim);
 
 // These arrays are used to reduce along the class dimension, and broadcast
@@ -58,6 +56,8 @@ void ComputeSoftMax(const Device& d, T1& logits, T2& softmax, int batch_size, in
         (softmax * softmax.sum(along_class).inverse().eval().reshape(batch_by_one).broadcast(one_by_class));
   }
 }
+
+//The below functions are not copied from TF.
 
 // this function skips zero values (since exp(0) is non zero)
 template <typename T>
