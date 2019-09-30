@@ -128,13 +128,14 @@ static inline NORMALIZE MakeNormalize(const std::string& input) {
 
 enum class SVM_TYPE { SVM_LINEAR, SVM_SVC };
 
-static inline float ErfInv(float x) {
-  float sgn = x < 0 ? -1.0f : 1.0f;
+template <typename T>
+T ErfInv(T x) {
+  T sgn = x < 0 ? -1.0f : 1.0f;
   x = (1 - x) * (1 + x);
-  float log = std::log(x);
-  float v = 2 / (3.14159f * 0.147f) + 0.5f * log;
-  float v2 = 1 / (0.147f) * log;
-  float v3 = -v + std::sqrt(v * v - v2);
+  T log = std::log(x);
+  T v = 2 / (static_cast<T>(M_PI) * 0.147f) + 0.5f * log;
+  T v2 = 1 / (0.147f) * log;
+  T v3 = -v + std::sqrt(v * v - v2);
   x = sgn * std::sqrt(v3);
   return x;
 }
@@ -194,14 +195,18 @@ static inline void multiclass_probability(int64_t classcount, const std::vector<
   }
 }
 
-static const float ml_sqrt2 = 1.41421356f;
-
-static inline float ComputeLogistic(float val) {
-  float v = 1 / (1 + std::exp(-std::abs(val)));
+// y = \frac{1}{1+e^{-x}} , x \in R
+template <typename T>
+T ComputeLogistic(T val) {
+  T v = 1 / (1 + std::exp(-std::abs(val)));
   return (val < 0) ? (1 - v) : v;
 }
 
-static inline float ComputeProbit(float val) { return ml_sqrt2 * ErfInv(2 * val - 1); }
+// It assumes val is in [0,1]
+template <typename T>
+inline T ComputeProbit(T val) {
+  return static_cast<T>(M_SQRT2) * ErfInv(2 * val - 1);
+}
 
 static inline float sigmoid_probability(float score, float proba, float probb) {
   float val = score * proba + probb;
@@ -234,6 +239,7 @@ void write_scores(std::vector<T>& scores, POST_EVAL_TRANSFORM post_transform, in
 /**
  * if post_transform != POST_EVAL_TRANSFORM::PROBIT and add_second_class is in
  * [0, 3], output 2 value else output 1 value
+ * if post_transform == POST_EVAL_TRANSFORM::PROBIT, it assumes sc is in [0,1]
  */
 template <typename T>
 void write_binary_scores(T sc, POST_EVAL_TRANSFORM post_transform, int add_second_class, T* out_p) {
