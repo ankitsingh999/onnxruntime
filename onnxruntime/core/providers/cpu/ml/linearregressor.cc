@@ -18,9 +18,12 @@ LinearRegressor<T>::LinearRegressor(const OpKernelInfo& info)
     : OpKernel(info), post_transform_(MakeTransform(info.GetAttrOrDefault<std::string>("post_transform", "NONE"))) {
   std::vector<float> c;
   c = info.GetAttrsOrDefault<float>("intercepts");
+  intercepts_.resize(c.size());
   std::copy_n(c.data(), c.size(), intercepts_.data());
   ORT_ENFORCE(info.GetAttr<int64_t>("targets", &targets_).IsOK());
+  c.clear();
   ORT_ENFORCE(info.GetAttrs<float>("coefficients", c).IsOK());
+  coefficients_.resize(c.size());
   std::copy_n(c.data(), c.size(), coefficients_.data());
 }
 

@@ -197,7 +197,7 @@ static inline void multiclass_probability(int64_t classcount, const std::vector<
 
 // y = \frac{1}{1+e^{-x}} , x \in R
 template <typename T>
-T ComputeLogistic(T val) {
+inline T ComputeLogistic(T val) {
   T v = 1 / (1 + std::exp(-std::abs(val)));
   return (val < 0) ? (1 - v) : v;
 }
